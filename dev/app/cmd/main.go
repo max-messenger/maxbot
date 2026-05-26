@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"log"
-	"maxbot"
 	"os"
+
+	"github.com/max-messenger/maxbot"
 )
 
 func main() {

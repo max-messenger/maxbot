@@ -2,6 +2,7 @@ package maxbot
 
 import (
 	"context"
+
 	maxbot "github.com/max-messenger/max-bot-api-client-go/v2"
 	"github.com/max-messenger/max-bot-api-client-go/v2/model"
 )

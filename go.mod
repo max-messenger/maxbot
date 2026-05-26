@@ -1,4 +1,4 @@
-module maxbot
+module github.com/max-messenger/maxbot
 
 go 1.24.0
 
