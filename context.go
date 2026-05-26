@@ -11,7 +11,7 @@ type HandlerFunc func(Context) error
 
 type Context interface {
 	Update() model.Update
-	Send(ctx context.Context, text string) error
+	Send(ctx context.Context, text string, opts ...Option) error
 }
 
 type nativeContext struct {
@@ -31,11 +31,15 @@ func (c *nativeContext) Update() model.Update {
 	return c.u
 }
 
-func (c *nativeContext) Send(ctx context.Context, text string) error {
+func (c *nativeContext) Send(ctx context.Context, text string, opts ...Option) error {
 	msg := maxbot.NewMessage().
 		SetText(text).
 		SetUser(c.u.UserID).
 		SetChat(c.u.ChatID)
+
+	for _, opt := range opts {
+		opt(msg)
+	}
 
 	_, err := c.b.Messages.Send(ctx, msg)
 

@@ -132,8 +132,8 @@ func (b *Bot) ProcessContext(c Context) {
 		return
 	}
 
-	if u.GetMessage().Body.Text != "" {
-		b.handle(u.GetMessage().Body.Text, c)
+	if b.handle(OnText, c) {
+		return
 	}
 
 	b.handle(string(u.UpdateType), c)

@@ -1,21 +1,20 @@
 package maxbot
 
-import "github.com/max-messenger/max-bot-api-client-go/v2/model"
-
 const (
-	OnMessageCreated        = string(model.UpdateMessageCreated)
-	OnMessageCallback       = string(model.UpdateMessageCallback)
-	OnMessageEdited         = string(model.UpdateMessageEdited)
-	OnMessageRemoved        = string(model.UpdateMessageRemoved)
-	OnBotAdded              = string(model.UpdateBotAdded)
-	OnBotRemoved            = string(model.UpdateBotRemoved)
-	OnUserAdded             = string(model.UpdateUserAdded)
-	OnUserRemoved           = string(model.UpdateUserRemoved)
-	OnBotStarted            = string(model.UpdateBotStarted)
-	OnBotStopped            = string(model.UpdateBotStopped)
-	OnDialogCleared         = string(model.UpdateDialogCleared)
-	OnDialogRemoved         = string(model.UpdateDialogRemoved)
-	OnDialogMuted           = string(model.UpdateDialogMuted)
-	OnDialogUnmuted         = string(model.UpdateDialogUnmuted)
-	OnChatTitleChangedEvent = string(model.UpdateChatTitleChanged)
+	OnMessageCreated        = "message_created"
+	OnMessageCallback       = "message_callback"
+	OnMessageEdited         = "message_edited"
+	OnMessageRemoved        = "message_removed"
+	OnBotAdded              = "bot_added"
+	OnBotRemoved            = "bot_removed"
+	OnUserAdded             = "user_added"
+	OnUserRemoved           = "user_removed"
+	OnBotStarted            = "bot_started"
+	OnBotStopped            = "bot_stopped"
+	OnDialogCleared         = "dialog_cleared"
+	OnDialogRemoved         = "dialog_removed"
+	OnDialogMuted           = "dialog_muted"
+	OnDialogUnmuted         = "dialog_unmuted"
+	OnChatTitleChangedEvent = "chat_title_changed"
+	OnText                  = "text"
 )
