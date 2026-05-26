@@ -22,8 +22,16 @@ func main() {
 	}
 
 	bot.Handle("/info", func(c maxbot.Context) error {
-
 		err = c.Send(ctx, "msg")
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	bot.Handle(maxbot.OnChatTitleChangedEvent, func(c maxbot.Context) error {
+		err = c.Send(ctx, "title changed")
 		if err != nil {
 			return err
 		}

@@ -128,9 +128,15 @@ func (b *Bot) NewContext(u model.Update) Context {
 func (b *Bot) ProcessContext(c Context) {
 	u := c.Update()
 
-	if maxbot.GetCommand(u) != "" {
-		b.handle(maxbot.GetCommand(u), c)
+	if b.handle(maxbot.GetCommand(u), c) {
+		return
 	}
+
+	if u.GetMessage().Body.Text != "" {
+		b.handle(u.GetMessage().Body.Text, c)
+	}
+
+	b.handle(string(u.UpdateType), c)
 
 }
 
