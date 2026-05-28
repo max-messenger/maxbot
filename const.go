@@ -1,6 +1,10 @@
 package maxbot
 
 const (
+	callbackPrefix = "callback_"
+)
+
+const (
 	OnMessageCreated        = "message_created"
 	OnMessageCallback       = "message_callback"
 	OnMessageEdited         = "message_edited"

@@ -6,44 +6,42 @@ import (
 	maxbot "github.com/max-messenger/max-bot-api-client-go/v2"
 )
 
-type Opt func(cli *Bot) error
+type Opt func(cli *Api)
 
 func WithHTTPClient(cli maxbot.HttpClient) Opt {
-	return func(b *Bot) error {
-		b.opts = append(b.opts, maxbot.WithHTTPClient(cli))
-
-		return nil
+	return func(b *Api) {
+		b.conf.opts = append(b.conf.opts, maxbot.WithHTTPClient(cli))
 	}
 }
 
 func WithBaseURL(baseURL string) Opt {
-	return func(b *Bot) error {
-		b.opts = append(b.opts, maxbot.WithBaseURL(baseURL))
-
-		return nil
+	return func(b *Api) {
+		b.conf.opts = append(b.conf.opts, maxbot.WithBaseURL(baseURL))
 	}
 }
 
 func WithPollingPause(d time.Duration) Opt {
-	return func(b *Bot) error {
-		b.opts = append(b.opts, maxbot.WithPollingPause(d))
-
-		return nil
+	return func(b *Api) {
+		b.conf.opts = append(b.conf.opts, maxbot.WithPollingPause(d))
 	}
 }
 
 func WithPollingTimeout(d time.Duration) Opt {
-	return func(b *Bot) error {
-		b.opts = append(b.opts, maxbot.WithPollingTimeout(d))
-
-		return nil
+	return func(b *Api) {
+		b.conf.opts = append(b.conf.opts, maxbot.WithPollingTimeout(d))
 	}
 }
 
-func WithPoller(poller Poller) Opt {
-	return func(b *Bot) error {
-		b.poller = poller
+func WithErrorHandle(f func(error, Context)) Opt {
+	return func(b *Api) {
+		b.onError = f
+	}
+}
 
-		return nil
+func WithWebhook(webhookUrl, secret string, types []string) Opt {
+	return func(b *Api) {
+		b.conf.webhookURL = webhookUrl
+		b.conf.secret = secret
+		b.conf.types = types
 	}
 }

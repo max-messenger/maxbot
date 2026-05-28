@@ -1,32 +1,32 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/max-messenger/max-bot-api-client-go/v2/model"
 	"github.com/max-messenger/maxbot"
 )
 
 func main() {
-	ctx := context.Background()
 	opts := []maxbot.Opt{
-		maxbot.WithHTTPClient(newHttpClient()),
+		maxbot.WithHTTPClient(&http.Client{Timeout: 25 * time.Second}),
 	}
 
 	token := os.Getenv("BOT_TOKEN")
 
-	bot, err := maxbot.NewBot(token, opts...)
+	bot, err := maxbot.NewApi(token, opts...)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	bot.Handle("/info", func(c maxbot.Context) error {
 		kb := model.NewKeyboard()
-		kb.AddRow().AddLink("ya", "https://ya.ru")
-		err = c.Send(ctx, "fx мне в руки", maxbot.WithKeyboard(kb))
+		kb.AddRow().AddLink("docs", "https://dev.max.ru/docs")
+		err = c.Send("max мне в руки", maxbot.WithKeyboard(kb))
 		if err != nil {
 			return err
 		}
@@ -35,7 +35,7 @@ func main() {
 	})
 
 	bot.Handle(maxbot.OnChatTitleChangedEvent, func(c maxbot.Context) error {
-		err = c.Send(ctx, "title changed")
+		err = c.Send("title changed")
 		if err != nil {
 			return err
 		}
@@ -44,7 +44,7 @@ func main() {
 	})
 
 	bot.Handle(maxbot.OnText, func(c maxbot.Context) error {
-		err = c.Send(ctx, fmt.Sprintf("%s - сам такой", c.Update().GetMessage().Body.Text))
+		err = c.Send(fmt.Sprintf("%s - принято", c.Update().GetMessage().Body.Text))
 		if err != nil {
 			return err
 		}

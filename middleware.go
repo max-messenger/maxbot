@@ -19,7 +19,7 @@ func applyMiddleware(h HandlerFunc, m ...MiddlewareFunc) HandlerFunc {
 }
 
 type Group struct {
-	b          *Bot
+	b          *Api
 	middleware []MiddlewareFunc
 }
 
@@ -27,6 +27,6 @@ func (g *Group) Use(middleware ...MiddlewareFunc) {
 	g.middleware = append(g.middleware, middleware...)
 }
 
-func (g *Group) Handle(endpoint any, h HandlerFunc, m ...MiddlewareFunc) {
+func (g *Group) Handle(endpoint string, h HandlerFunc, m ...MiddlewareFunc) {
 	g.b.Handle(endpoint, h, appendMiddleware(g.middleware, m)...)
 }
