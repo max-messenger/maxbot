@@ -2,6 +2,7 @@ package maxbot
 
 const (
 	callbackPrefix = "callback_"
+	commandPrefix  = "/"
 )
 
 const (

@@ -109,13 +109,16 @@ func (a *Api) ProcessUpdate(ctx context.Context, u model.Update) {
 
 func (a *Api) ProcessContext(c Context) {
 	u := c.Update()
+	if u.Callback != nil {
 
-	if a.handle(callbackPrefix+c.Update().GetCallback().CallbackID, c) {
-		return
+		if a.handle(callbackPrefix+GetCallbackCommand(u.Callback.Payload), c) {
+			return
+		}
 	}
-
-	if a.handle(maxbot.GetCommand(u), c) {
-		return
+	if u.Message != nil {
+		if a.handle(GetCommand(u.GetMessage().Body.Text), c) {
+			return
+		}
 	}
 
 	if a.handle(OnText, c) {
