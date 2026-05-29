@@ -110,7 +110,6 @@ func (a *Api) ProcessUpdate(ctx context.Context, u model.Update) {
 func (a *Api) ProcessContext(c Context) {
 	u := c.Update()
 	if u.Callback != nil {
-
 		if a.handle(callbackPrefix+GetCallbackCommand(u.Callback.Payload), c) {
 			return
 		}
