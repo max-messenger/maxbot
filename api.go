@@ -26,10 +26,8 @@ type Api struct {
 
 	group *Group
 
-	synchronous bool
-	onError     func(error, Context)
-	handlers    map[string]HandlerFunc
-	updates     chan model.Update
+	onError  func(error, Context)
+	handlers map[string]HandlerFunc
 
 	Info model.BotInfo
 }
@@ -42,7 +40,6 @@ func NewApi(token string, opt ...Opt) (*Api, error) {
 		group:    new(Group),
 		onError:  defaultOnError,
 		handlers: make(map[string]HandlerFunc),
-		updates:  make(chan model.Update, 1),
 	}
 
 	for _, o := range opt {
@@ -103,14 +100,14 @@ func (a *Api) Stop() {
 	a.cancel()
 }
 
-func (a *Api) ProcessUpdate(ctx context.Context, u model.Update) {
-	a.ProcessContext(NewContext(ctx, a.client, u))
+func (a *Api) ProcessUpdate(_ context.Context, u model.Update) {
+	a.ProcessContext(NewContext(a.ctx, a.client, u))
 }
 
 func (a *Api) ProcessContext(c Context) {
 	u := c.Update()
 
-	if a.handle(callbackPrefix+c.Update().GetCallback().CallbackID, c) {
+	if a.handle(callbackPrefix+c.Update().GetCallback().Payload, c) {
 		return
 	}
 
@@ -169,7 +166,6 @@ func (a *Api) poling() {
 		updates, marker, err = a.client.Subscriptions.GetUpdates(a.ctx, marker)
 		err = checkError(err)
 		if err != nil {
-			log.Println("GetUpdates: ", err)
 			return
 		}
 
@@ -192,11 +188,6 @@ func (a *Api) runHandler(h HandlerFunc, c Context) {
 		if err := h(c); err != nil {
 			a.OnError(err, c)
 		}
-	}
-
-	if a.synchronous {
-		f()
-		return
 	}
 
 	go f()
