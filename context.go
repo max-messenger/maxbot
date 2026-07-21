@@ -11,10 +11,12 @@ type HandlerFunc func(Context) error
 
 type Context interface {
 	Update() model.Update
+	Context() context.Context
+
 	Send(text string, opts ...Option) error
+	Answer(text string, opts ...Option) error
 	Edit(text string, opts ...Option) error
 	Delete(opts ...Option) error
-	Context() context.Context
 }
 
 type nativeContext struct {
@@ -46,6 +48,22 @@ func (c *nativeContext) Send(text string, opts ...Option) error {
 	}
 
 	_, err := c.b.Messages.Send(c.ctx, msg)
+
+	return err
+}
+
+func (c *nativeContext) Answer(text string, opts ...Option) error {
+	msg := maxbot.NewMessage().
+		SetText(text).
+		SetUser(c.u.UserID).
+		SetChat(c.u.ChatID)
+
+	for _, opt := range opts {
+		opt(msg)
+	}
+
+	mb := msg.MessageBody()
+	_, err := c.b.Messages.AnswerOnCallback(c.ctx, c.u.GetCallback().CallbackID, model.CallbackAnswer{Message: &mb})
 
 	return err
 }

@@ -25,8 +25,24 @@ func main() {
 
 	bot.Handle("/info", func(c maxbot.Context) error {
 		kb := model.NewKeyboard()
-		kb.AddRow().AddLink("docs", "https://dev.max.ru/docs")
+		kb.AddRow().
+			AddLink("docs", "https://dev.max.ru/docs").
+			AddCallBack("push me baby", "pushBtn")
+
 		err = c.Send("max мне в руки", maxbot.WithKeyboard(kb))
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	bot.HandleCallback("pushBtn", func(c maxbot.Context) error {
+		kb := model.NewKeyboard()
+		kb.AddRow().
+			AddLink("docs", "https://dev.max.ru/docs")
+
+		err = c.Answer("surprise", maxbot.WithKeyboard(kb))
 		if err != nil {
 			return err
 		}
