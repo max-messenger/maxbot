@@ -37,6 +37,19 @@ func main() {
 		return nil
 	})
 
+	bot.Handle("/reply", func(c maxbot.Context) error {
+		kb := model.NewKeyboard()
+		kb.AddRow().
+			AddLink("docs", "https://dev.max.ru/docs")
+
+		err = c.Reply("reply", maxbot.WithKeyboard(kb))
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	bot.HandleCallback("pushBtn", func(c maxbot.Context) error {
 		kb := model.NewKeyboard()
 		kb.AddRow().
