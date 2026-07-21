@@ -111,7 +111,7 @@ func (a *Api) ProcessContext(c Context) {
 		return
 	}
 
-	if a.handle(maxbot.GetCommand(u), c) {
+	if a.handle(a.getCommand(u.GetCommand()), c) {
 		return
 	}
 
@@ -195,6 +195,14 @@ func (a *Api) runHandler(h HandlerFunc, c Context) {
 
 func (a *Api) OnError(err error, c Context) {
 	a.onError(err, c)
+}
+
+func (a *Api) getCommand(command model.Command) string {
+	if command.BotName != "" && command.BotName == a.Info.Username {
+		return command.Command
+	}
+
+	return ""
 }
 
 func defaultOnError(err error, c Context) {
