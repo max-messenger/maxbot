@@ -11,10 +11,14 @@ type HandlerFunc func(Context) error
 
 type Context interface {
 	Update() model.Update
+	Context() context.Context
+	API() *maxbot.Api
+
 	Send(text string, opts ...Option) error
+	Answer(text string, opts ...Option) error
+	Reply(text string, opts ...Option) error
 	Edit(text string, opts ...Option) error
 	Delete(opts ...Option) error
-	Context() context.Context
 }
 
 type nativeContext struct {
@@ -35,11 +39,50 @@ func (c *nativeContext) Update() model.Update {
 	return c.u
 }
 
+func (c *nativeContext) Context() context.Context {
+	return c.ctx
+}
+
+func (c *nativeContext) API() *maxbot.Api {
+	return c.b
+}
+
 func (c *nativeContext) Send(text string, opts ...Option) error {
 	msg := maxbot.NewMessage().
 		SetText(text).
 		SetUser(c.u.UserID).
 		SetChat(c.u.ChatID)
+
+	for _, opt := range opts {
+		opt(msg)
+	}
+
+	_, err := c.b.Messages.Send(c.ctx, msg)
+
+	return err
+}
+
+func (c *nativeContext) Answer(text string, opts ...Option) error {
+	msg := maxbot.NewMessage().
+		SetText(text).
+		SetUser(c.u.UserID).
+		SetChat(c.u.ChatID)
+
+	for _, opt := range opts {
+		opt(msg)
+	}
+
+	mb := msg.MessageBody()
+	_, err := c.b.Messages.AnswerOnCallback(c.ctx, c.u.GetCallback().CallbackID, model.CallbackAnswer{Message: &mb})
+
+	return err
+}
+
+func (c *nativeContext) Reply(text string, opts ...Option) error {
+	msg := maxbot.NewMessage().
+		SetUser(c.u.UserID).
+		SetChat(c.u.ChatID).
+		SetReply(text, c.u.GetMessage().Body.Mid)
 
 	for _, opt := range opts {
 		opt(msg)
@@ -77,8 +120,4 @@ func (c *nativeContext) Delete(opts ...Option) error {
 	_, err := c.b.Messages.DeleteMessage(c.ctx, c.u.MessageID)
 
 	return err
-}
-
-func (c *nativeContext) Context() context.Context {
-	return c.ctx
 }

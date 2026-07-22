@@ -111,7 +111,7 @@ func (a *Api) ProcessContext(c Context) {
 		return
 	}
 
-	if a.handle(maxbot.GetCommand(u), c) {
+	if a.handle(a.getCommand(u), c) {
 		return
 	}
 
@@ -195,6 +195,29 @@ func (a *Api) runHandler(h HandlerFunc, c Context) {
 
 func (a *Api) OnError(err error, c Context) {
 	a.onError(err, c)
+}
+
+func (a *Api) getCommand(u model.Update) string {
+	command := u.GetCommand()
+
+	// В личной переписке не может быть других ботов
+	if u.GetMessage().Recipient.ChatType == model.ChatTypeDialog {
+		return command.Command
+	}
+
+	// в групповых чатах, без указания бота
+	// тут мы не можем проверить наличие других ботов,
+	// поэтому делаем предположение, что бот единственный и, если не тегнули,
+	// то отвечаем на все команды
+	if command.BotName == "" {
+		return command.Command
+	}
+
+	if command.BotName == a.Info.Username {
+		return command.Command
+	}
+
+	return ""
 }
 
 func defaultOnError(err error, c Context) {
