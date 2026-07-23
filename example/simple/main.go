@@ -15,6 +15,13 @@ import (
 func main() {
 	opts := []maxbot.Opt{
 		maxbot.WithHTTPClient(&http.Client{Timeout: 25 * time.Second}),
+
+		// the bot will be subscribed to the specified types
+		//maxbot.WithWebhook("http://my-bot.cloud.hooli.local/webhook", "secret", []string{
+		//		maxbot.OnBotAdded,
+		//		maxbot.OnMessageCreated,
+		//		maxbot.OnMessageCallback,
+		//	}),
 	}
 
 	token := os.Getenv("BOT_TOKEN")
