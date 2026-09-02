@@ -21,7 +21,7 @@
 
 ## Описание
 
-Это Golang — фреймворк для настройки работы [ботов для MAX](https://dev.max.ru/docs). С помощью него вы можете настраивать бота, обрабатывать сообщения, команды, callback-запросы и события
+Это Golang-фреймворк для настройки работы [ботов для MAX](https://dev.max.ru/docs). С помощью него вы можете настраивать бота, обрабатывать сообщения, команды, callback-запросы и события
 
 * **Обработка команд** — маршрутизация для событий бота
 * **Контекстная обработка** — каждое обновление обрабатывается с контекстом, который содержит данные, специфичные для запроса
@@ -91,7 +91,7 @@ go run main.go
 
 ### Подключение подписок на события
 
-Чтобы бот получал обновления через [Webhook - подписку](https://dev.max.ru/docs-api#Webhook), укажите access_token, URL и список типов событий для подписки:
+Чтобы настроить бота на получение обновлений через [Webhook - подписку](https://dev.max.ru/docs-api#Webhook), укажите `access_token`, URL и список типов событий для подписки:
 
 ```go 
 bot, err := maxbot.NewApi(access_token, maxbot.WithWebhook("https://your-domain.com/webhook"))
@@ -159,7 +159,7 @@ func myHandler(ctx *maxbot.Context) error {
 Промежуточные обработчики (Middleware) позволяют выполнять код до или после основных обработчиков. Используются для логирования, аутентификации или сбора метрик
 
 ```go
-// Определение middleware для логирования
+// Определение Middleware для логирования
 loggingMiddleware := func (next maxbot.HandlerFunc) maxbot.HandlerFunc {
     return func (ctx *maxbot.Context) error {
         log.Printf("Получено обновление от пользователя %d", ctx.Message.From.ID)
@@ -167,16 +167,16 @@ loggingMiddleware := func (next maxbot.HandlerFunc) maxbot.HandlerFunc {
 	}
 }
 
-// Применение middleware к конкретному обработчику
+// Применение Middleware к конкретному обработчику
 bot.Handle("/secret", secretHandler, loggingMiddleware)
 
-// Глобальное применение middleware
+// Глобальное применение Middleware
 bot.Use(loggingMiddleware)
 ```
 
 #### Обработка ошибок в Middleware
 
-Чтобы перехватить и классифицировать ошибки с помощью middleware, используйте код:
+Чтобы перехватить и классифицировать ошибки с помощью Middleware, используйте код:
 
 ```go
 errorMiddleware := func(next maxbot.HandlerFunc) maxbot.HandlerFunc {
@@ -211,4 +211,4 @@ bot.Use(errorMiddleware)
 
 ## Лицензия
 
-Этот проект лицензирован под Apache License 2.0 - подробности смотрите в файле [LICENSE](LICENSE)
+Этот проект лицензирован под Apache License 2.0 – подробности смотрите в файле [LICENSE](LICENSE)
