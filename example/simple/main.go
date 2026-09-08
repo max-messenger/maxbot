@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	api "github.com/max-messenger/max-bot-api-client-go/v2"
 	"github.com/max-messenger/max-bot-api-client-go/v2/model"
 	"github.com/max-messenger/maxbot"
 )
@@ -25,8 +23,6 @@ func main() {
 		//		maxbot.OnMessageCallback,
 		//	}),
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	token := os.Getenv("BOT_TOKEN")
 
@@ -90,37 +86,18 @@ func main() {
 
 		fmt.Println("-->", c.Update().GetMessage().Body.Text, c.Update().MessageID)
 
-		if c.Update().GetMessage().Recipient.ChatType == model.ChatTypeChannel {
-			go getCommentsFromMessageChannel(ctx, c.API(), c.Update().MessageID)
-		}
+		return nil
+	})
 
+	bot.Handle(maxbot.OnCommentCreated, func(c maxbot.Context) error {
+		fmt.Printf(
+			"new comment on post_id: %s, comment_id: %s, comment: %s\n",
+			c.Update().PostID,
+			c.Update().CommentID,
+			c.Update().Message.Body.Text,
+		)
 		return nil
 	})
 
 	bot.Start()
-}
-
-func getCommentsFromMessageChannel(ctx context.Context, client *api.Api, messageID string) {
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-
-	timeAfter := time.Now().Unix()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			comments, err := client.Messages.GetComments(ctx, messageID, 0, timeAfter, 0, nil)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			for _, comment := range comments.Messages {
-				fmt.Println(comment.Body.CommentID, comment.Body.Text, comment.Timestamp)
-				timeAfter = comment.Timestamp + 1
-			}
-
-		}
-	}
 }

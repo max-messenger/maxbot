@@ -20,4 +20,7 @@ const (
 	OnDialogMuted           = "dialog_muted"
 	OnDialogUnmuted         = "dialog_unmuted"
 	OnChatTitleChangedEvent = "chat_title_changed"
+	OnCommentCreated        = "comment_created"
+	OnCommentEdited         = "comment_edited"
+	OnCommentRemoved        = "comment_removed"
 )
