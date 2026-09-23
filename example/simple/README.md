@@ -5,7 +5,7 @@
   - [Установка и настройка бота](#установка-и-настройка-бота)
     - [Инициализация бота](#инициализация-бота)
     - [Подключение обработчиков команд](#подключение-обработчиков-команд)
-      - [Команда `/help`:](#команда-help)
+      - [Команда `/help`](#команда-help)
       - [Команда `/command`](#команда-command)
       - [Команда `/reply`](#команда-reply)
     - [Подключение обработчика Callback-запросов](#подключение-обработчика-callback-запросов)
@@ -15,11 +15,11 @@
 
 ## Обзор
 
-В файле [`main.go`](main.go) содержится рабочий пример, который демонстрирует основные сценарии использования бота, созданного с помощью фреймворка:
+В файле [`main.go`](main.go) содержится пример с демо-сценариями бота, созданного с помощью фреймворка:
 
 * Ответ на команды (`/help`, `/command`, `/reply`)
 * Обработка нажатия на кнопки (callback)
-* Регистрация на события (например, изменение названия чата)
+* Подписка на события (например, изменение названия чата)
 * Отправка сообщения с клавиатурой
 * Логирование входящих текстовых сообщений
 
@@ -28,10 +28,10 @@
 ### Инициализация бота
 
 ```go
-// Создание списока опций (opts). В примере устанавливается таймаут для HTTP-клиента
+// Создание списка опций (opts). В примере устанавливается тайм-аут для HTTP-клиента
 opts := []maxbot.Opt{
   maxbot.WithHTTPClient(&http.Client{Timeout: 25 * time.Second}),
-  // Регистрация подписки на обновления через webhook
+  // Регистрация подписки на обновления через Webhook
   maxbot.WithWebhook("http://my-bot.cloud.hooli.local/webhook", "secret", []string{
     maxbot.OnBotAdded,
     maxbot.OnMessageCreated,
@@ -39,7 +39,7 @@ opts := []maxbot.Opt{
   }),
 }
 
-// Создание бота с помощью maxbot.NewApi(), используя токен из переменной окружения BOT_TOKEN
+// Создание бота с помощью maxbot.NewApi() — используется токен из переменной окружения BOT_TOKEN
 token := os.Getenv("BOT_TOKEN")
 bot, err := maxbot.NewApi(token, opts...)
 if err != nil {
@@ -49,17 +49,17 @@ if err != nil {
 
 ### Подключение обработчиков команд
 
-#### Команда `/help`:
+#### Команда `/help`
 
 ```go
 // При получении команды `/help` бот создаёт клавиатуру с двумя кнопками: ссылкой и callback-кнопкой
 bot.Handle("/help", func (c maxbot.Context) error {
   kb := model.NewKeyboard()
   kb.AddRow().
-  // Ссылка
+  // Добавление кнопки-ссылки
   AddLink("Документация", "https://dev.max.ru/docs").
-  // Callback-кнопка
-  AddCallBack("нажми на меня", "pushBtn")
+  // Добавление callback-кнопки
+  AddCallBack("Нажми на меня", "pushBtn")
   // В ответе бот возвращает сообщение с этой клавиатурой  
   return c.Send("Основная информация:", maxbot.WithKeyboard(kb))
 })
@@ -70,17 +70,17 @@ bot.Handle("/help", func (c maxbot.Context) error {
 Используется для отладки
 
 ```go
-// При получении команды `/command`, бот из контекста извлекает структуру команды (`GetCommand()`)
+// При получении команды `/command` бот извлекает структуру команды `(GetCommand())` из контекста
 bot.Handle("/command", func (c maxbot.Context) error {
   command := c.Update().GetCommand()
   msg := fmt.Sprintf(
-    // Структура команды (`GetCommand()`) 
+    // Создание структуры команды (`GetCommand()`) 
     "command: %s\nbot name: %s\n params: \n%s\n text: %s\n",
     command.Command, command.BotName,
     strings.Join(command.Params, "\n"),
     command.RemainingText,
   )
-  // В ответе бот возвращает извлеченную информацию
+  // В ответе бот возвращает извлечённую информацию
   return c.Send(msg)
 })
 ```
@@ -90,6 +90,7 @@ bot.Handle("/command", func (c maxbot.Context) error {
 Используется для ответа на сообщение, которое её вызвало
 
 ```go
+// При получении команды `/reply` бот создаёт клавиатуру, содержащую ссылку
 bot.Handle("/reply", func (c maxbot.Context) error {
   kb := model.NewKeyboard()
   kb.AddRow().
@@ -102,12 +103,12 @@ bot.Handle("/reply", func (c maxbot.Context) error {
 ### Подключение обработчика Callback-запросов
 
 ```go
-// Бот связывает callback-данные "pushBtn" с обработчиком
+// Бот связывает callback-данные `pushBtn` с обработчиком
 bot.HandleCallback("pushBtn", func (c maxbot.Context) error {
   kb := model.NewKeyboard()
   kb.AddRow().
   AddLink("Документация", "https://dev.max.ru/docs")
-  // Когда пользователь нажимает кнопку "push me baby" из команды `/help`, бот отвечает на callback (`c.Answer()`) сообщением "Изменено" и новой клавиатурой
+  // Когда пользователь нажимает кнопку «Нажми на меня» из команды `/help`, бот отвечает на callback (`c.Answer()`) сообщением «Изменено» и новой клавиатурой
   return c.Answer("Изменено", maxbot.WithKeyboard(kb))
 })
 ```
@@ -115,17 +116,17 @@ bot.HandleCallback("pushBtn", func (c maxbot.Context) error {
 ### Подключение обработчика событий
 
 ```go
-// Обработчик регистрируется на событие `maxbot.OnChatTitleChangedEvent`
+// Обработчик подписывается на событие `maxbot.OnChatTitleChangedEvent`
 bot.Handle(maxbot.OnChatTitleChangedEvent, func (c maxbot.Context) error {
-  // При любом изменении названия чата, в котором находится бот, он отправляет уведомление "Заголовок изменен"
-  return c.Send("Заголовок чата изменен")
+  // При любом изменении названия чата, в котором находится бот, он отправляет уведомление «Заголовок изменён»
+  return c.Send("Заголовок изменён")
 })
 ``` 
 
 ### Подключение обработчика текстовых сообщений
 
 ```go
-// Обработчик для `maxbot.OnMessageCreated` регистрируется на все текстовые сообщения, которые не являются командами
+// Обработчик для `maxbot.OnMessageCreated` подписывется на все текстовые сообщения, которые не являются командами
 bot.Handle(maxbot.OnMessageCreated, func (c maxbot.Context) error {
   //err = c.Send(fmt.Sprintf("%s - принято", c.Update().GetMessage().Body.Text))
   //if err != nil {
@@ -141,12 +142,13 @@ bot.Handle(maxbot.OnMessageCreated, func (c maxbot.Context) error {
 
 ## Запуск бота
 
-После подключения обработчиков введите команду:
+После подключения обработчиков для запуска бота введите команду:
 
 ```go
 bot.Start()
 ```
 
-После запуска бот начинает получать и обрабатывать обновления, используя подключенные обработчики
+После запуска бот начинает получать и обрабатывать обновления, используя подключённые обработчики
 
 Вы можете использовать этот код как основу для вашего собственного бота, модифицируя обработчики под ваши задачи
+
