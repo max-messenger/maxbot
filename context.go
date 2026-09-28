@@ -16,6 +16,7 @@ type Context interface {
 	API() *maxbot.Api
 
 	Send(text string, opts ...Option) error
+	SendMessage(*maxbot.Message) error
 	Answer(text string, opts ...Option) error
 	Reply(text string, opts ...Option) error
 	Edit(text string, opts ...Option) error
@@ -63,6 +64,12 @@ func (c *nativeContext) Send(text string, opts ...Option) error {
 		opt(msg)
 	}
 
+	_, err := c.b.Messages.Send(c.ctx, msg)
+
+	return err
+}
+
+func (c *nativeContext) SendMessage(msg *maxbot.Message) error {
 	_, err := c.b.Messages.Send(c.ctx, msg)
 
 	return err
