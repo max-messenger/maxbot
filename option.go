@@ -31,6 +31,54 @@ func WithUser(id int64) Option {
 	}
 }
 
+func WithDisableLinkPreview(mode bool) Option {
+	return func(msg *maxbot.Message) {
+		msg.SetDisableLinkPreview(mode)
+	}
+}
+
+func WithAddImageUr(url string) Option {
+	return func(msg *maxbot.Message) {
+		msg.AddImageUrl(url)
+	}
+}
+
+func WithSticker(stickerCode string) Option {
+	return func(msg *maxbot.Message) {
+		msg.AddSticker(stickerCode)
+	}
+}
+
+func WithContact(userID int64) Option {
+	return func(msg *maxbot.Message) {
+		msg.AddContact(userID)
+	}
+}
+
+func WithLocation(lat, lon float64) Option {
+	return func(msg *maxbot.Message) {
+		msg.AddLocation(lat, lon)
+	}
+}
+
+func WithShare(link string) Option {
+	return func(msg *maxbot.Message) {
+		msg.AddShare(link)
+	}
+}
+
+func WithoutNotify() Option {
+	return func(msg *maxbot.Message) {
+		msg.WithoutNotify()
+	}
+}
+
+func WithReply(text, id string) Option {
+	return func(msg *maxbot.Message) {
+		msg.SetReply(text, id)
+	}
+}
+
 // WithAttachByToken создает опцию для добавления вложения к сообщению по токену файла.
 //
 // Используется паттерн функциональных опций (functional options pattern) для гибкого
