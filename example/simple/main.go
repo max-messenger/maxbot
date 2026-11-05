@@ -86,6 +86,11 @@ func main() {
 
 		fmt.Println("-->", c.Update().GetMessage().Body.Text, c.Update().MessageID)
 
+		err = c.Send(c.Update().GetMessage().Body.Text)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 
@@ -96,6 +101,12 @@ func main() {
 			c.Update().CommentID,
 			c.Update().Message.Body.Text,
 		)
+
+		err = c.Send(c.Update().GetMessage().Body.Text)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 

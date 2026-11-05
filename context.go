@@ -5,6 +5,7 @@ import (
 
 	maxbot "github.com/max-messenger/max-bot-api-client-go/v2"
 	"github.com/max-messenger/max-bot-api-client-go/v2/model"
+	"github.com/max-messenger/maxbot/formatter"
 )
 
 type HandlerFunc func(Context) error
@@ -58,13 +59,23 @@ func (c *nativeContext) Send(text string, opts ...Option) error {
 	msg := maxbot.NewMessage().
 		SetText(text).
 		SetUser(c.u.UserID).
-		SetChat(c.u.ChatID)
+		SetChat(c.u.ChatID).
+		SetFormat(model.FormatMarkdown)
 
 	for _, opt := range opts {
 		opt(msg)
 	}
 
-	_, err := c.b.Messages.Send(c.ctx, msg)
+	message := c.u.GetMessage()
+	formatStr, err := formatter.RestoreFormatting(
+		message.Body.Text,
+		message.Body.MarkUp,
+		msg.MessageBody().Format,
+	)
+
+	msg.SetText(formatStr)
+
+	_, err = c.b.Messages.Send(c.ctx, msg)
 
 	return err
 }
