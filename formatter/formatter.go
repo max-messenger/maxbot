@@ -16,43 +16,53 @@ type event struct {
 	tag   string
 }
 
-// RestoreFormatting converts MAX markup to HTML or Markdown.
-func RestoreFormatting(text string, markups []model.Markup, format model.TextFormat) (string, error) {
-	switch format {
-	case model.FormatHTML:
-		return MarkupToHTML(text, markups), nil
-	case model.FormatMarkdown:
-		return MarkupToMarkdown(text, markups), nil
-	default:
-		return "", fmt.Errorf("unsupported text format: %s", format)
-	}
+// ToHTML converts MAX markup into HTML.
+func ToHTML(m model.MessageBody) string {
+	return render(m.Text, m.MarkUp, true)
 }
 
-// MarkupToHTML converts MAX markup into HTML.
-func MarkupToHTML(text string, markups []model.Markup) string {
-	return render(text, markups, true)
-}
-
-// MarkupToMarkdown converts MAX markup into MAX Markdown.
-func MarkupToMarkdown(text string, markups []model.Markup) string {
-	return render(text, markups, false)
+// ToMarkdown converts MAX markup into MAX Markdown.
+func ToMarkdown(m model.MessageBody) string {
+	return render(m.Text, m.MarkUp, false)
 }
 
 func render(text string, markups []model.Markup, isHTML bool) string {
 	runes := []rune(text)
+
+	// offsets[i] — смещение i-й руны в UTF-16 code units.
+	// offsets[len(runes)] — общая длина текста в UTF-16.
+	offsets := make([]int, len(runes)+1)
+	for i, r := range runes {
+		width := 1
+		if r >= 0x10000 { // суррогатная пара в UTF-16
+			width = 2
+		}
+		offsets[i+1] = offsets[i] + width
+	}
+	total := offsets[len(runes)]
+
 	var events []event
 
 	for i, m := range markups {
-		start := int(m.From)
-		end := start + int(m.Length)
+		// MAX отдаёт позиции в UTF-16 code units.
+		u16Start := int(m.From)
+		u16End := u16Start + int(m.Length)
 
 		// Protect against invalid ranges.
-		if start < 0 || start >= len(runes) || end <= start {
+		if m.Length <= 0 || u16Start < 0 || u16Start >= total {
 			continue
 		}
-		if end > len(runes) {
-			end = len(runes)
+		if u16End > total {
+			u16End = total
 		}
+
+		// UTF-16 → индексы рун. Если граница попала в середину
+		// суррогатной пары, диапазон расширяется до целой руны:
+		// начало сдвигается назад, конец — вперёд.
+		start := sort.Search(len(offsets), func(k int) bool {
+			return offsets[k] > u16Start
+		}) - 1
+		end := sort.SearchInts(offsets, u16End)
 
 		open, tail, ok := delimiters(m, isHTML)
 		if !ok {

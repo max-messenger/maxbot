@@ -6,62 +6,6 @@ import (
 	"github.com/max-messenger/max-bot-api-client-go/v2/model"
 )
 
-func TestRestoreFormatting(t *testing.T) {
-	markups := []model.Markup{
-		{From: 0, Length: 5, Type: "strong"},
-	}
-
-	tests := []struct {
-		name    string
-		text    string
-		markups []model.Markup
-		format  model.TextFormat
-		want    string
-		wantErr bool
-	}{
-		{
-			name:    "html format",
-			text:    "hello",
-			markups: markups,
-			format:  model.FormatHTML,
-			want:    "<b>hello</b>",
-		},
-		{
-			name:    "markdown format",
-			text:    "hello",
-			markups: markups,
-			format:  model.FormatMarkdown,
-			want:    "**hello**",
-		},
-		{
-			name:    "empty text",
-			text:    "",
-			markups: nil,
-			format:  model.FormatHTML,
-			want:    "",
-		},
-		{
-			name:    "unsupported format",
-			text:    "hello",
-			markups: markups,
-			format:  model.TextFormat("unknown"),
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := RestoreFormatting(tt.text, tt.markups, tt.format)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("err = %v, wantErr = %v", err, tt.wantErr)
-			}
-			if !tt.wantErr && got != tt.want {
-				t.Errorf("got %q, want %q", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestMarkupToHTML(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -229,7 +173,7 @@ func TestMarkupToHTML(t *testing.T) {
 		{
 			name:    "multi-byte text",
 			text:    "Привет 🔥",
-			markups: []model.Markup{{From: 0, Length: 8, Type: "strong"}}, // ← было 7
+			markups: []model.Markup{{From: 0, Length: 9, Type: "strong"}}, // UTF-16: 6+1+2
 			want:    "<b>Привет 🔥</b>",
 		},
 		{
@@ -271,11 +215,72 @@ func TestMarkupToHTML(t *testing.T) {
 			},
 			want: "<i>hello</i>",
 		},
+		{
+			name:    "utf16: markup after emoji",
+			text:    "😀АБ",
+			markups: []model.Markup{{From: 2, Length: 1, Type: "strong"}},
+			want:    "😀<b>А</b>Б",
+		},
+		{
+			name:    "utf16: markup after several emoji",
+			text:    "😀😀😀 Привет, друг!",
+			markups: []model.Markup{{From: 7, Length: 6, Type: "strong"}},
+			want:    "😀😀😀 <b>Привет</b>, друг!",
+		},
+		{
+			name:    "utf16: markup covers emoji",
+			text:    "😀😀",
+			markups: []model.Markup{{From: 0, Length: 2, Type: "strong"}},
+			want:    "<b>😀</b>😀",
+		},
+		{
+			name:    "utf16: markup around emoji in the middle",
+			text:    "a😀b",
+			markups: []model.Markup{{From: 1, Length: 2, Type: "emphasized"}},
+			want:    "a<i>😀</i>b",
+		},
+		{
+			name:    "utf16: end inside surrogate pair expands to whole rune",
+			text:    "😀A",
+			markups: []model.Markup{{From: 0, Length: 1, Type: "strong"}},
+			want:    "<b>😀</b>A",
+		},
+		{
+			name:    "utf16: start inside surrogate pair expands to whole rune",
+			text:    "😀A",
+			markups: []model.Markup{{From: 1, Length: 2, Type: "strong"}},
+			want:    "<b>😀A</b>",
+		},
+		{
+			name: "utf16: nested markup with emoji",
+			text: "😀 hello",
+			markups: []model.Markup{
+				{From: 0, Length: 8, Type: "emphasized"},
+				{From: 3, Length: 5, Type: "strong"},
+			},
+			want: "<i>😀 <b>hello</b></i>",
+		},
+		{
+			name:    "utf16: end beyond text with emoji is clamped",
+			text:    "😀",
+			markups: []model.Markup{{From: 0, Length: 100, Type: "strong"}},
+			want:    "<b>😀</b>",
+		},
+		{
+			name:    "utf16: from out of range in utf16 units is skipped",
+			text:    "😀", // 2 UTF-16 units, 1 rune
+			markups: []model.Markup{{From: 2, Length: 1, Type: "strong"}},
+			want:    "😀",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := MarkupToHTML(tt.text, tt.markups)
+			mb := model.MessageBody{
+				Text:   tt.text,
+				MarkUp: tt.markups,
+			}
+			got := ToHTML(mb)
 			if got != tt.want {
 				t.Errorf("got %q, want %q", got, tt.want)
 			}
@@ -411,11 +416,33 @@ func TestMarkupToMarkdown(t *testing.T) {
 			markups: []model.Markup{{From: 5, Length: 2, Type: "strong"}},
 			want:    "hi",
 		},
+		{
+			name:    "utf16: markup after emoji",
+			text:    "😀АБ",
+			markups: []model.Markup{{From: 2, Length: 1, Type: "strong"}},
+			want:    "😀**А**Б",
+		},
+		{
+			name:    "utf16: markup covers emoji",
+			text:    "😀А",
+			markups: []model.Markup{{From: 0, Length: 2, Type: "strong"}},
+			want:    "**😀**А",
+		},
+		{
+			name:    "utf16: link after several emoji",
+			text:    "😀😀 site",
+			markups: []model.Markup{{From: 5, Length: 4, Type: "link", URL: "https://example.com"}},
+			want:    "😀😀 [site](https://example.com)",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := MarkupToMarkdown(tt.text, tt.markups)
+			mb := model.MessageBody{
+				Text:   tt.text,
+				MarkUp: tt.markups,
+			}
+			got := ToMarkdown(mb)
 			if got != tt.want {
 				t.Errorf("got %q, want %q", got, tt.want)
 			}

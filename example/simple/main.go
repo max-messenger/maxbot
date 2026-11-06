@@ -10,6 +10,7 @@ import (
 
 	"github.com/max-messenger/max-bot-api-client-go/v2/model"
 	"github.com/max-messenger/maxbot"
+	"github.com/max-messenger/maxbot/formatter"
 )
 
 func main() {
@@ -79,14 +80,10 @@ func main() {
 	})
 
 	bot.Handle(maxbot.OnMessageCreated, func(c maxbot.Context) error {
-		//err = c.Send(fmt.Sprintf("%s - принято", c.Update().GetMessage().Body.Text))
-		//if err != nil {
-		//	return err
-		//}
-
 		fmt.Println("-->", c.Update().GetMessage().Body.Text, c.Update().MessageID)
 
-		err = c.Send("my local time: " + time.Now().Format(time.TimeOnly))
+		formatText := formatter.ToMarkdown(c.Update().GetMessage().Body)
+		err = c.Send(fmt.Sprintf("-->\n\n%s", formatText))
 		if err != nil {
 			return err
 		}
