@@ -86,7 +86,7 @@ func main() {
 
 		fmt.Println("-->", c.Update().GetMessage().Body.Text, c.Update().MessageID)
 
-		err = c.Send(c.Update().GetMessage().Body.Text)
+		err = c.Send("my local time: " + time.Now().Format(time.TimeOnly))
 		if err != nil {
 			return err
 		}
